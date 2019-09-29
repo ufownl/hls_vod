@@ -1,0 +1,16 @@
+# Log files
+*.log
+logs/
+
+# nginx resolvers configure files
+resolvers/
+
+# nginx temporary directories
+*_temp/
+
+# lua c_module files
+*.so
+
+# sprotect compilers configure files
+sprotect_utilities/
+sprotect_compilers/
