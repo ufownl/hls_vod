@@ -165,4 +165,37 @@ function _M.open_raw(id)
   return file
 end
 
+function _M.set_raw_meta(id, raw_meta)
+  if not is_oid(id) or not raw_meta then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local meta = json.decode(raw_meta)
+  if not meta or not meta.format or not tonumber(meta.duration) or
+     not tonumber(meta.bit_rate) then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local db = database()
+  local num, err = db:collection("videos"):update({
+    _id = bson.oid(id),
+    raw_meta = {
+      ["$exists"] = false
+    }
+  }, {
+    ["$set"] = {
+      raw_meta = {
+        format = meta.format,
+        duration = tonumber(meta.duration),
+        bit_rate = tonumber(meta.bit_rate)
+      }
+    }
+  })
+  if not num then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  if num <= 0 then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+end
+
 return _M
