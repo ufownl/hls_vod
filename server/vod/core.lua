@@ -34,15 +34,15 @@ end
 
 local function redisc()
   if not ngx.ctx.redisc then
-    local redisc, err = redis.new({
+    local connector, err = redis.new({
       url = redis_uri
     })
-    if not redisc then
+    if not connector then
       ngx.log(ngx.ERR, "redis error: ", err)
       ngx.exit(ngx.HTTP_BAD_GATEWAY)
     end
-    local ok, err = redisc:connect()
-    if not ok then
+    local redisc, err = connector:connect()
+    if not redisc then
       ngx.log(ngx.ERR, "redis error: ", err)
       ngx.exit(ngx.HTTP_BAD_GATEWAY)
     end
@@ -139,7 +139,10 @@ function _M.add_video(raw)
     ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
   end
   local id = tostring(ids[1])
-  -- TODO: 获取视频格式信息
+  redisc():lpush("transcoding_tasks", json.encode({
+    cmd = "probe",
+    vid = id
+  }))
   return id
 end
 
