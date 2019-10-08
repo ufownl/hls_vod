@@ -143,4 +143,26 @@ function _M.add_video(raw)
   return id
 end
 
+function _M.open_raw(id)
+  if not is_oid(id) then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local db = database()
+  local qry, err = db:collection("videos"):find_one(bson.oid(id), {
+    raw = 1
+  })
+  if not qry then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  if qry == bson.null() then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  local file = _M.open_file(qry.raw, "fs.raw")
+  if not file then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  return file
+end
+
 return _M
