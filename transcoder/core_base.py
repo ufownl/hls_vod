@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import m3u8
 import requests
 from abc import ABCMeta, abstractmethod
 
@@ -24,6 +25,8 @@ class CoreBase(metaclass=ABCMeta):
                 self._handle_probe(vid, raw)
             elif cmd == "cover":
                 self._handle_cover(vid, raw, task["params"])
+            elif cmd == "transcode":
+                self._handle_transcode(vid, raw, task["params"])
             else:
                 print("task error: ", "invalid command")
             os.remove(raw)
@@ -38,6 +41,10 @@ class CoreBase(metaclass=ABCMeta):
 
     @abstractmethod
     def cover(self, raw, params):
+        return None
+
+    @abstractmethod
+    def transcode(self, raw, params):
         return None
 
     def _download_raw(self, vid):
@@ -92,3 +99,24 @@ class CoreBase(metaclass=ABCMeta):
             print("system error: ", e)
         finally:
             os.remove(cover)
+
+    def _handle_transcode(self, vid, raw, params):
+        profile = params["profile"]
+        playlist = self.transcode(raw, params)
+        if not playlist:
+            return
+        segments = m3u8.load(playlist).segments
+        try:
+            requests.post(
+                self._api_entry + "/hls_vod/api/upload/" + vid + "/segments",
+                params = dict(profile=profile),
+                files = dict([("file_%d" % i, ("%s#%d@%f.ts" % (vid, i, seg.duration), open(os.path.join(self._work_dir, seg.uri), "rb"))) for i, seg in enumerate(segments)])
+            )
+        except requests.exceptions.RequestException as e:
+            print("http error: ", e)
+        except OSError as e:
+            print("system error: ", e)
+        finally:
+            for seg in segments:
+                os.remove(os.path.join(self._work_dir, seg.uri))
+            os.remove(playlist)

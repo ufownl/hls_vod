@@ -29,3 +29,15 @@ class FFmpegCore(CoreBase):
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)
             return None
+
+    def transcode(self, raw, params):
+        base, _ = os.path.splitext(raw)
+        playlist = base + ".m3u8"
+        width = params["width"]
+        height = params["height"]
+        try:
+            ffmpeg.input(raw).filter("scale", width=width, height=height).output(playlist, hls_time=10, hls_list_size=0).overwrite_output().run()
+            return playlist
+        except ffmpeg.Error as e:
+            print("ffmpeg error: ", e)
+            return None

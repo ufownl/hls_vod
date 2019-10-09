@@ -258,4 +258,87 @@ function _M.set_cover(id, cover)
   end
 end
 
+function _M.transcode_task(id, profile, width, height)
+  if not is_oid(id) or not profile or not tonumber(width) or
+     not tonumber(height) then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local db = database()
+  local qry, err = db:collection("videos"):find_one(bson.oid(id), {
+    _id = 1
+  })
+  if not qry then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  if qry == bson.null() then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  local ids, err = db:collection("segments"):insert({
+    video = id,
+    profile = profile
+  })
+  if not ids then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  if err <= 0 then
+    ngx.exit(ngx.HTTP_CONFLICT)
+  end
+  redisc():lpush("transcoding_tasks", json.encode({
+    cmd = "transcode",
+    vid = id,
+    params = {
+      profile = profile,
+      width = tonumber(width),
+      height = tonumber(height)
+    }
+  }))
+end
+
+function _M.set_segments(id, profile, files)
+  local function cleanup()
+    for i, v in ipairs(files) do
+      _M.remove_file(v.id, "fs.segment")
+    end
+  end
+  local segments = {}
+  for i, v in ipairs(files) do
+    local m =
+      ngx.re.match(v.filename, "\\S+#([0-9]+)@([0-9]+(\\.[0-9]+)?)\\.ts", "o")
+    if not m then
+      cleanup()
+      ngx.exit(ngx.HTTP_BAD_REQUEST)
+    end
+    table.insert(segments, {
+      id = v.id,
+      index = tonumber(m[1]),
+      duration = tonumber(m[2])
+    })
+  end
+  table.sort(segments, function(lhs, rhs)
+    return lhs.index < rhs.index
+  end)
+  local db = database()
+  local num, err = db:collection("segments"):update({
+    video = id,
+    profile = profile,
+    segments = {
+      ["$exists"] = false
+    }
+  }, {
+    ["$set"] = {
+      segments = segments
+    }
+  })
+  if not num then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  if num <= 0 then
+    cleanup()
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+end
+
 return _M
