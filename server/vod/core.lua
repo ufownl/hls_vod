@@ -341,4 +341,53 @@ function _M.set_segments(id, profile, files)
   end
 end
 
+function _M.get_playlist(id, profile)
+  if not is_oid(id) or not profile then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local db = database()
+  local qry, err = db:collection("segments"):find_one({
+    video = id,
+    profile = profile
+  }, {
+    segments = 1
+  })
+  if not qry then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  if qry == bson.null() then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  local target_duration = 0
+  for i, v in ipairs(qry.segments) do
+    if v.duration > target_duration then
+      target_duration = v.duration
+    end
+  end
+  local lines = {
+    "#EXTM3U",
+    "#EXT-X-VERSION:3",
+    "#EXT-X-TARGETDURATION:"..math.ceil(target_duration),
+    "#EXT-X-MEDIA-SEQUENCE:0"
+  }
+  for i, v in ipairs(qry.segments) do
+    table.insert(lines, "#EXTINF:"..v.duration..",")
+    table.insert(lines, v.id..".ts")
+  end
+  table.insert(lines, "#EXT-X-ENDLIST")
+  return table.concat(lines, "\n")
+end
+
+function _M.open_segment(id)
+  if not is_oid(id) then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local file = _M.open_file(id, "fs.segment")
+  if not file then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  return file
+end
+
 return _M
