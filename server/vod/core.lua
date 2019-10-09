@@ -88,7 +88,7 @@ function _M.recv_files(prefix, chunk_size, max_num)
     ngx.log(ngx.ERR, err)
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
-  local ids = {}
+  local files = {}
   local file
   while true do
     local tp, res, err = form:read()
@@ -118,9 +118,12 @@ function _M.recv_files(prefix, chunk_size, max_num)
           ngx.log(ngx.ERR, "mongodb error: "..err)
           ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
         end
+        table.insert(files, {
+          id = tostring(id),
+          filename = file:filename()
+        })
         file = nil
-        table.insert(ids, tostring(id))
-        if tonumber(max_num) and #ids >= tonumber(max_num) then
+        if tonumber(max_num) and #files >= tonumber(max_num) then
           break
         end
       end
@@ -128,7 +131,7 @@ function _M.recv_files(prefix, chunk_size, max_num)
       break
     end
   end
-  return ids
+  return files
 end
 
 function _M.add_video(raw)
