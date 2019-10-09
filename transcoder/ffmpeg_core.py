@@ -36,7 +36,10 @@ class FFmpegCore(CoreBase):
         width = params["width"]
         height = params["height"]
         try:
-            ffmpeg.input(raw).filter("scale", width=width, height=height).output(playlist, hls_time=10, hls_list_size=0).overwrite_output().run()
+            s = ffmpeg.input(raw)
+            v = s.video.filter("scale", width=width, height=height)
+            a = s.audio
+            ffmpeg.output(v, a, playlist, hls_time=10, hls_list_size=0).overwrite_output().run()
             return playlist
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)
