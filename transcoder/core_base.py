@@ -1,9 +1,6 @@
 import os
 import re
 import json
-import urllib
-import urllib.parse
-import urllib.request
 import requests
 from abc import ABCMeta, abstractmethod
 
@@ -45,19 +42,22 @@ class CoreBase(metaclass=ABCMeta):
 
     def _download_raw(self, vid):
         try:
-            url = self._api_entry + "/hls_vod/api/download/raw?id=" + vid
-            r = urllib.request.urlopen(url)
-            if r.status != 200:
+            url = self._api_entry + "/hls_vod/api/download/raw"
+            r = requests.get(url, params={
+                "id": vid
+            })
+            if r.status_code != requests.codes.ok:
                 return None
-            m = self._filename_pattern.match(r.getheader("Content-Disposition"))
+            m = self._filename_pattern.match(r.headers["Content-Disposition"])
             if not m:
                 return None
             _, ext = os.path.splitext(m.group(1))
             path = os.path.join(self._work_dir, vid + ext)
             with open(path, "wb") as f:
-                f.write(r.read())
+                for chunk in r.iter_content(chunk_size=4096):
+                    f.write(chunk)
             return path
-        except urllib.error.URLError as e:
+        except requests.exceptions.RequestException as e:
             print("http error: ", e)
             return None
         except OSError as e:
@@ -70,11 +70,11 @@ class CoreBase(metaclass=ABCMeta):
             return
         try:
             url = self._api_entry + "/hls_vod/api/set_raw_meta"
-            urllib.request.urlopen(url, urllib.parse.urlencode({
+            requests.post(url, data={
                 "id": vid,
                 "meta": json.dumps(meta)
-            }).encode())
-        except urllib.error.URLError as e:
+            })
+        except requests.exceptions.RequestException as e:
             print("http error: ", e)
 
     def _handle_cover(self, vid, raw, params):
