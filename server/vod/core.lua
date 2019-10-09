@@ -79,7 +79,7 @@ function _M.remove_file(id, prefix)
   database():gridfs(prefix):remove(bson.oid(id))
 end
 
-function _M.recv_files(prefix, chunk_size)
+function _M.recv_files(prefix, chunk_size, max_num)
   if not chunk_size then
     chunk_size = 4096
   end
@@ -120,6 +120,9 @@ function _M.recv_files(prefix, chunk_size)
         end
         file = nil
         table.insert(ids, tostring(id))
+        if tonumber(max_num) and #ids >= tonumber(max_num) then
+          break
+        end
       end
     elseif tp == "eof" then
       break
@@ -197,6 +200,57 @@ function _M.set_raw_meta(id, raw_meta)
     ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
   end
   if num <= 0 then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+end
+
+function _M.cover_task(id, ss)
+  if not is_oid(id) then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local db = database()
+  local num, err = db:collection("videos"):update({
+    _id = bson.oid(id),
+    cover = {
+      ["$exists"] = false
+    }
+  }, {
+    ["$set"] = {
+      cover = ""
+    }
+  })
+  if not num then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  if num <= 0 then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  redisc():lpush("transcoding_tasks", json.encode({
+    cmd = "cover",
+    vid = id,
+    params = {
+      ss = number_arg(ss)
+    }
+  }))
+end
+
+function _M.set_cover(id, cover)
+  local db = database()
+  local num, err = db:collection("videos"):update({
+    _id = bson.oid(id),
+    cover = ""
+  }, {
+    ["$set"] = {
+      cover = cover
+    }
+  })
+  if not num then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  if num <= 0 then
+    _M.remove_file(cover, "fs.cover")
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
 end

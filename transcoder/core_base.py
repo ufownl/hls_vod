@@ -4,6 +4,7 @@ import json
 import urllib
 import urllib.parse
 import urllib.request
+import requests
 from abc import ABCMeta, abstractmethod
 
 class CoreBase(metaclass=ABCMeta):
@@ -24,6 +25,8 @@ class CoreBase(metaclass=ABCMeta):
                 return
             if cmd == "probe":
                 self._handle_probe(vid, raw)
+            elif cmd == "cover":
+                self._handle_cover(vid, raw, task["params"])
             else:
                 print("task error: ", "invalid command")
             os.remove(raw)
@@ -34,6 +37,10 @@ class CoreBase(metaclass=ABCMeta):
 
     @abstractmethod
     def probe(self, raw):
+        return None
+
+    @abstractmethod
+    def cover(self, raw, params):
         return None
 
     def _download_raw(self, vid):
@@ -53,9 +60,6 @@ class CoreBase(metaclass=ABCMeta):
         except urllib.error.URLError as e:
             print("http error: ", e)
             return None
-        except FileNotFoundError as e:
-            print("file error: ", e)
-            return None
         except OSError as e:
             print("system error: ", e)
             return None
@@ -72,3 +76,19 @@ class CoreBase(metaclass=ABCMeta):
             }).encode())
         except urllib.error.URLError as e:
             print("http error: ", e)
+
+    def _handle_cover(self, vid, raw, params):
+        cover = self.cover(raw, params)
+        if not cover:
+            return
+        try:
+            url = self._api_entry + "/hls_vod/api/upload/" + vid + "/cover"
+            requests.post(url, files={
+                "cover": open(cover, "rb")
+            })
+        except requests.exceptions.RequestException as e:
+            print("http error: ", e)
+        except OSError as e:
+            print("system error: ", e)
+        finally:
+            os.remove(cover)

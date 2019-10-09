@@ -1,3 +1,4 @@
+import os
 import ffmpeg
 from core_base import CoreBase
     
@@ -14,6 +15,17 @@ class FFmpegCore(CoreBase):
                 "duration": fmt["duration"],
                 "bit_rate": fmt["bit_rate"]
             }
+        except ffmpeg.Error as e:
+            print("ffmpeg error: ", e)
+            return None
+
+    def cover(self, raw, params):
+        base, _ = os.path.splitext(raw)
+        cover = base + ".jpg"
+        ss = params["ss"]
+        try:
+            ffmpeg.input(raw, ss=ss).output(cover, vframes=1).overwrite_output().run()
+            return cover
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)
             return None
