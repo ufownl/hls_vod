@@ -9,7 +9,7 @@ curl -v --data-urlencode "id=$1" \
 
 # 参数:
 # id: 视频ID
-# profile: 转码配置名称
+# profile: 转码规格名称
 # width: 输出视频宽度(-1 表示按比例缩放)
 # height: 输出视频高度(-1 表示按比例缩放)
 # 返回: 无

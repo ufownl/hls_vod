@@ -10,5 +10,8 @@ curl -v -G --data-urlencode "id=$1" \
 # {
 #   "id": "视频ID",
 #   "date": 视频上传时间(unix时间戳),
-#   "duration": 视频时长(秒)
+#   "duration": 视频时长(秒),
+#   "profiles": [
+#     ... 视频转码规格
+#   ]
 # }

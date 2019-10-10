@@ -417,23 +417,35 @@ function _M.get_video_meta(id)
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
-  local qry, err = db:collection("videos"):find_one(bson.oid(id), {
+  local video_qry, err = db:collection("videos"):find_one(bson.oid(id), {
     date = 1,
     raw_meta = 1
   })
-  if not qry then
+  if not video_qry then
     ngx.log(ngx.ERR, "mongodb error: ", err)
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
-  if qry == bson.null() then
+  if video_qry == bson.null() then
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
   local meta = {
     id = id,
-    date = tonumber(tostring(qry.date)) / 1000
+    date = tonumber(tostring(video_qry.date)) / 1000,
+    profiles = {}
   }
-  if qry.raw_meta then
-    meta.duration = qry.raw_meta.duration
+  if video_qry.raw_meta then
+    meta.duration = video_qry.raw_meta.duration
+  end
+  local segment_qry = db:collection("segments"):find({
+    video = id,
+    segments = {
+      ["$exists"] = true
+    }
+  }, {
+    profile = 1
+  })
+  for i, v in ipairs(segment_qry:all()) do
+    table.insert(meta.profiles, v.profile)
   end
   return meta
 end
