@@ -390,4 +390,15 @@ function _M.open_segment(id)
   return file
 end
 
+function _M.open_cover(id)
+  if not is_oid(id) then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local file = _M.open_file(id, "fs.cover")
+  if not file then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  return file
+end
+
 return _M
