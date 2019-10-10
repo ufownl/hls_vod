@@ -504,4 +504,57 @@ function _M.remove_video(id)
   end
 end
 
+function _M.get_videos(start, finish, skip, limit)
+  local filter = {}
+  if tonumber(start) then
+    if not filter.date then
+      filter.date = {}
+    end
+    filter.date["$gte"] = bson.date(start * 1000)
+  end
+  if tonumber(finish) then
+    if not filter.date then
+      filter.date = {}
+    end
+    filter.date["$lt"] = bson.date(finish * 1000)
+  end
+  local db = database()
+  local video_qry = db:collection("videos"):find(filter, {
+    date = 1,
+    raw_meta = 1
+  })
+  local total = video_qry:count()
+  if tonumber(skip) then
+    video_qry:skip(tonumber(skip))
+  end
+  if tonumber(limit) then
+    video_qry:limit(tonumber(limit))
+  end
+  local videos = {}
+  for i, v in ipairs(video_qry:all()) do
+    local id = tostring(v._id)
+    local meta = {
+      id = id,
+      date = tonumber(tostring(v.date)) / 1000,
+      profiles = {}
+    }
+    if v.raw_meta then
+      meta.duration = v.raw_meta.duration
+    end
+    local segment_qry = db:collection("segments"):find({
+      video = id,
+      segments = {
+        ["$exists"] = true
+      }
+    }, {
+      profile = 1
+    })
+    for j, seg in ipairs(segment_qry:all()) do
+      table.insert(meta.profiles, seg.profile)
+    end
+    table.insert(videos, meta)
+  end
+  return videos, total:number()
+end
+
 return _M
