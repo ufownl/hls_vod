@@ -348,7 +348,10 @@ function _M.get_playlist(id, profile)
   local db = database()
   local qry, err = db:collection("segments"):find_one({
     video = id,
-    profile = profile
+    profile = profile,
+    segments = {
+      ["$exists"] = true
+    }
   }, {
     segments = 1
   })
