@@ -394,7 +394,18 @@ function _M.open_cover(id)
   if not is_oid(id) then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
-  local file = _M.open_file(id, "fs.cover")
+  local db = database()
+  local qry, err = db:collection("videos"):find_one(bson.oid(id), {
+    cover = 1
+  })
+  if not qry then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  if qry == bson.null() then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  local file = _M.open_file(qry.cover, "fs.cover")
   if not file then
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
