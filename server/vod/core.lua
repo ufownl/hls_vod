@@ -453,4 +453,55 @@ function _M.get_video_meta(id)
   return meta
 end
 
+function _M.remove_video(id)
+  if not is_oid(id) then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local db = database()
+  db:collection("segments"):update({
+    video = id,
+    segments = {
+      ["$exists"] = false
+    }
+  }, {
+    ["$set"] = {
+      segments = {}
+    }
+  }, {
+    multi = true
+  })
+  local segment_qry = db:collection("segments"):find({
+    video = id
+  }, {
+    segments = 1
+  })
+  for i, v in ipairs(segment_qry:all()) do
+    for j, seg in ipairs(v.segments) do
+      _M.remove_file(seg.id, "fs.segment")
+    end
+  end
+  db:collection("segments"):remove({
+    video = id
+  })
+  db:collection("videos"):update({
+    _id = bson.oid(id),
+    cover = ""
+  }, {
+    ["$set"] = {
+      cover = "removing"
+    }
+  })
+  local video_qry, err = db:collection("videos"):find_and_modify(bson.oid(id), {
+    remove = true
+  })
+  if video_qry then
+    if video_qry ~= bson.null() then
+      _M.remove_file(video_qry.raw, "fs.raw")
+      _M.remove_file(video_qry.cover, "fs.cover")
+    end
+  else
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+  end
+end
+
 return _M
