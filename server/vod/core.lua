@@ -261,10 +261,28 @@ function _M.set_cover(id, cover)
   end
 end
 
-function _M.transcode_task(id, profile, width, height)
-  if not is_oid(id) or not profile or not tonumber(width) or
-     not tonumber(height) then
+function _M.transcode_task(id, profile, width, height, logo_x, logo_y, logo_w,
+                           logo_h)
+  if not is_oid(id) or not profile then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  if not tonumber(width) then
+    width = -1
+  end
+  if not tonumber(height) then
+    height = -1
+  end
+  if not tonumber(logo_x) then
+    logo_x = 0
+  end
+  if not tonumber(logo_y) then
+    logo_y = 0
+  end
+  if not tonumber(logo_w) then
+    logo_w = -1
+  end
+  if not tonumber(logo_h) then
+    logo_h = -1
   end
   local db = database()
   local qry, err = db:collection("videos"):find_one(bson.oid(id), {
@@ -294,7 +312,11 @@ function _M.transcode_task(id, profile, width, height)
     params = {
       profile = profile,
       width = tonumber(width),
-      height = tonumber(height)
+      height = tonumber(height),
+      logo_x = tonumber(logo_x),
+      logo_y = tonumber(logo_y),
+      logo_w = tonumber(logo_w),
+      logo_h = tonumber(logo_h)
     }
   }))
 end

@@ -8,9 +8,10 @@ from abc import ABCMeta, abstractmethod
 class CoreBase(metaclass=ABCMeta):
     _filename_pattern = re.compile('^attachment; filename="(.+)"$')
 
-    def __init__(self, work_dir, api_entry):
+    def __init__(self, work_dir, api_entry, logo):
         self._work_dir = work_dir
         self._api_entry = api_entry
+        self._logo = logo
 
     def __call__(self, raw_task):
         try:

@@ -13,7 +13,7 @@ def worker_entry(args, now, worker_idx):
     # Create the redis instance
     redisc = redis.from_url(args.redis_uri)
     # Main loop
-    core = FFmpegCore(work_dir, args.api_entry)
+    core = FFmpegCore(work_dir, args.api_entry, args.logo)
     while True:
         task = redisc.brpop("transcoding_tasks")
         if task:
@@ -26,6 +26,7 @@ if __name__ == "__main__":
     parser.add_argument("--workers", help="set the number of worker processes (default: CPUs x2)", type=int, default=cpu_count()*2)
     parser.add_argument("--redis_uri", help="set the URI of redis server (default: redis://127.0.0.1:6379/0)", type=str, default="redis://127.0.0.1:6379/0")
     parser.add_argument("--api_entry", help="set the entry of platform APIs (default: http://127.0.0.1:2980)", type=str, default="http://127.0.0.1:2980")
+    parser.add_argument("--logo", help="set the path of logo file", type=str)
     args = parser.parse_args()
 
     now = time.time()

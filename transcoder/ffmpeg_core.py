@@ -4,8 +4,8 @@ from core_base import CoreBase
     
 
 class FFmpegCore(CoreBase):
-    def __init__(self, work_dir, api_entry):
-        super(FFmpegCore, self).__init__(work_dir, api_entry)
+    def __init__(self, work_dir, api_entry, logo):
+        super(FFmpegCore, self).__init__(work_dir, api_entry, logo)
 
     def probe(self, raw):
         try:
@@ -45,10 +45,18 @@ class FFmpegCore(CoreBase):
         playlist = base + ".m3u8"
         width = params["width"]
         height = params["height"]
+        if self._logo:
+            logo_x = params["logo_x"]
+            logo_y = params["logo_y"]
+            logo_w = params["logo_w"]
+            logo_h = params["logo_h"]
         try:
-            s = ffmpeg.input(raw)
-            v = s.video.filter("scale", width=width, height=height)
-            a = s.audio
+            stream = ffmpeg.input(raw)
+            v = stream.video.filter("scale", width=width, height=height)
+            if self._logo:
+                logo = ffmpeg.input(self._logo).filter("scale", width=logo_w, height=logo_h)
+                v = v.overlay(logo, x=logo_x, y=logo_y)
+            a = stream.audio
             ffmpeg.output(v, a, playlist, hls_time=10, hls_list_size=0).overwrite_output().run()
             return playlist
         except ffmpeg.Error as e:
