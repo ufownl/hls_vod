@@ -9,11 +9,21 @@ class FFmpegCore(CoreBase):
 
     def probe(self, raw):
         try:
-            fmt = ffmpeg.probe(raw)["format"]
+            info = ffmpeg.probe(raw)
+            fmt = info["format"]
+            width = 0
+            height = 0
+            for stream in info["streams"]:
+                if stream["codec_type"] == "video":
+                    width = stream["width"]
+                    height = stream["height"]
+                    break
             return {
                 "format": fmt["format_name"],
                 "duration": fmt["duration"],
-                "bit_rate": fmt["bit_rate"]
+                "bit_rate": fmt["bit_rate"],
+                "width": width,
+                "height": height
             }
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)

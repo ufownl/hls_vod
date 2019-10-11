@@ -180,7 +180,8 @@ function _M.set_raw_meta(id, raw_meta)
   end
   local meta = json.decode(raw_meta)
   if not meta or not meta.format or not tonumber(meta.duration) or
-     not tonumber(meta.bit_rate) then
+     not tonumber(meta.bit_rate) or not tonumber(meta.width) or
+     not tonumber(meta.height) then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
@@ -194,7 +195,9 @@ function _M.set_raw_meta(id, raw_meta)
       raw_meta = {
         format = meta.format,
         duration = tonumber(meta.duration),
-        bit_rate = tonumber(meta.bit_rate)
+        bit_rate = tonumber(meta.bit_rate),
+        width = tonumber(meta.width),
+        height = tonumber(meta.height)
       }
     }
   })
