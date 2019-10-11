@@ -51,6 +51,37 @@ local function redisc()
   return ngx.ctx.redisc
 end
 
+local function callback(url, body, count)
+  if not count then
+    count = 0
+  end
+  local httpc = http.new()
+  local res, err = httpc:request_uri(url, {
+    method = "POST",
+    headers = {
+      ["Content-Type"] = "application/x-www-form-urlencoded"
+    },
+    body = body,
+    ssl_verify = false
+  })
+  if res then
+    if res.status == ngx.HTTP_OK or res.status == ngx.HTTP_NO_CONTENT then
+      return
+    end
+  else
+    ngx.log(ngx.ERR, "http error: ", err)
+  end
+  count = count + 1
+  if count < 30 then
+    ngx.timer.at(60, function(premature)
+      if premature then
+        return
+      end
+      callback(url, body, count)
+    end)
+  end
+end
+
 function _M.create_file(filename, prefix)
   return database():gridfs(prefix):create(filename)
 end
@@ -208,6 +239,8 @@ function _M.set_raw_meta(id, raw_meta)
   if num <= 0 then
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
+  meta.id = id
+  callback(vod_callback.raw_meta, ngx.encode_args(meta))
 end
 
 function _M.cover_task(id, ss)
@@ -259,6 +292,9 @@ function _M.set_cover(id, cover)
     _M.remove_file(cover, "fs.cover")
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
+  callback(vod_callback.cover, ngx.encode_args({
+    id = id
+  }))
 end
 
 function _M.transcode_task(id, profile, width, height, logo_x, logo_y, logo_w,
@@ -364,6 +400,10 @@ function _M.set_segments(id, profile, files)
     cleanup()
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
+  callback(vod_callback.cover, ngx.encode_args({
+    id = id,
+    profile = profile
+  }))
 end
 
 function _M.get_playlist(id, profile)
