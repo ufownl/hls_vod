@@ -527,6 +527,8 @@ function _M.get_videos(start, finish, skip, limit)
   local video_qry = db:collection("videos"):find(filter, {
     date = 1,
     raw_meta = 1
+  }):sort({
+    date = -1
   })
   local total = video_qry:count()
   if tonumber(skip) then
