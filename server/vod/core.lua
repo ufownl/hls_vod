@@ -441,6 +441,8 @@ function _M.get_video_meta(id)
   }
   if video_qry.raw_meta then
     meta.duration = video_qry.raw_meta.duration
+    meta.raw_width = video_qry.raw_meta.width
+    meta.raw_height = video_qry.raw_meta.height
   end
   local segment_qry = db:collection("segments"):find({
     video = id,
@@ -543,6 +545,8 @@ function _M.get_videos(start, finish, skip, limit)
     }
     if v.raw_meta then
       meta.duration = v.raw_meta.duration
+      meta.raw_width = v.raw_meta.width
+      meta.raw_height = v.raw_meta.height
     end
     local segment_qry = db:collection("segments"):find({
       video = id,
