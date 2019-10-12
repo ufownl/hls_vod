@@ -240,7 +240,14 @@ function _M.set_raw_meta(id, raw_meta)
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
   meta.id = id
-  callback(vod_callback.raw_meta, ngx.encode_args(meta))
+  ngx.timer.at(0, function(premature, body)
+    if premature then
+      return
+    end
+    for i, v in ipairs(vod_callback.raw_meta) do
+      callback(v, body)
+    end
+  end, ngx.encode_args(meta))
 end
 
 function _M.cover_task(id, ss)
@@ -292,7 +299,14 @@ function _M.set_cover(id, cover)
     _M.remove_file(cover, "fs.cover")
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
-  callback(vod_callback.cover, ngx.encode_args({
+  ngx.timer.at(0, function(premature, body)
+    if premature then
+      return
+    end
+    for i, v in ipairs(vod_callback.cover) do
+      callback(v, body)
+    end
+  end, ngx.encode_args({
     id = id
   }))
 end
@@ -400,7 +414,14 @@ function _M.set_segments(id, profile, files)
     cleanup()
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
-  callback(vod_callback.transcode, ngx.encode_args({
+  ngx.timer.at(0, function(premature, body)
+    if premature then
+      return
+    end
+    for i, v in ipairs(vod_callback.transcode) do
+      callback(v, body)
+    end
+  end, ngx.encode_args({
     id = id,
     profile = profile
   }))
