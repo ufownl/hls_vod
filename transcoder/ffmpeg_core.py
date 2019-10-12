@@ -34,7 +34,7 @@ class FFmpegCore(CoreBase):
         cover = base + ".jpg"
         ss = params["ss"]
         try:
-            ffmpeg.input(raw, ss=ss).output(cover, vframes=1).overwrite_output().run()
+            ffmpeg.input(raw, ss=ss, stream_loop=-1).output(cover, vframes=1).overwrite_output().run()
             return cover
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)
