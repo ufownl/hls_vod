@@ -1,5 +1,4 @@
-local args = ngx.req.get_uri_args()
-local playlist = vod_core.get_playlist(ngx.var.video, args.profile)
+local playlist = vod_core.get_playlist(ngx.var.video, ngx.var.profile)
 ngx.ctx.cache_control = {
   public = true,
   max_age = 30 * 24 * 3600
