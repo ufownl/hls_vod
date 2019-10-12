@@ -1,5 +1,5 @@
 #! /bin/sh
-# 转码指定视频
+# 获取视频列表
 
 curl -v -G --data-urlencode "start=$1" \
      --data-urlencode "finish=$2" \
@@ -17,6 +17,8 @@ curl -v -G --data-urlencode "start=$1" \
 #       "id": "视频ID",
 #       "date": 视频上传时间(unix时间戳),
 #       "duration": 视频时长(秒),
+#       "raw_width": 原始视频宽度,
+#       "raw_height": 原始视频高度,
 #       "profiles": [
 #         ... 视频转码规格
 #       ]
