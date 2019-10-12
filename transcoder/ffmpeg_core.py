@@ -53,8 +53,10 @@ class FFmpegCore(CoreBase):
         try:
             stream = ffmpeg.input(raw)
             v = stream.video.filter("scale", width=width, height=height)
+            v = v.filter("pad", width="ceil(iw/2)*2", height="ceil(ih/2)*2")
             if self._logo:
-                logo = ffmpeg.input(self._logo).filter("scale", width=logo_w, height=logo_h)
+                logo = ffmpeg.input(self._logo)
+                logo = logo.filter("scale", width=logo_w, height=logo_h)
                 v = v.overlay(logo, x=logo_x, y=logo_y)
             a = stream.audio
             ffmpeg.output(v, a, playlist, hls_time=10, hls_list_size=0).overwrite_output().run()
