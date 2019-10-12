@@ -19,7 +19,7 @@ class CoreBase(metaclass=ABCMeta):
             cmd = task["cmd"]
             vid = task["vid"]
             raw = self._download_raw(vid)
-            if not raw:
+            if not raw or not os.path.isfile(raw):
                 print("task error: ", "invalid video")
                 return
             if cmd == "probe":
@@ -35,6 +35,8 @@ class CoreBase(metaclass=ABCMeta):
             print("json error: ", e)
         except KeyError as e:
             print("key error: ", e)
+        except OSError as e:
+            print("system error: ", e)
 
     @abstractmethod
     def probe(self, raw):
@@ -87,7 +89,7 @@ class CoreBase(metaclass=ABCMeta):
 
     def _handle_cover(self, vid, raw, params):
         cover = self.cover(raw, params)
-        if not cover:
+        if not cover or not os.path.isfile(cover):
             return
         try:
             url = self._api_entry + "/hls_vod/api/upload/" + vid + "/cover"
@@ -104,7 +106,7 @@ class CoreBase(metaclass=ABCMeta):
     def _handle_transcode(self, vid, raw, params):
         profile = params["profile"]
         playlist = self.transcode(raw, params)
-        if not playlist:
+        if not playlist or not os.path.isfile(playlist):
             return
         segments = m3u8.load(playlist).segments
         try:
