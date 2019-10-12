@@ -400,7 +400,7 @@ function _M.set_segments(id, profile, files)
     cleanup()
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
-  callback(vod_callback.cover, ngx.encode_args({
+  callback(vod_callback.transcode, ngx.encode_args({
     id = id,
     profile = profile
   }))
