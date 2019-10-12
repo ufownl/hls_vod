@@ -65,7 +65,7 @@ local function callback(url, body, count)
     ssl_verify = false
   })
   if res then
-    if res.status == ngx.HTTP_OK or res.status == ngx.HTTP_NO_CONTENT then
+    if res.status == ngx.HTTP_OK then
       return
     end
   else
