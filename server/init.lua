@@ -1,6 +1,5 @@
 json = require("cjson.safe")
 json.encode_empty_table_as_object(false)
-rstring = require("resty.string")
 upload = require("resty.upload")
 http = require("resty.http")
 bson = require("cbson")

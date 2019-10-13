@@ -10,16 +10,6 @@ local function number_arg(x)
   return y
 end
 
-local function is_oid(x)
-  if x then
-    local m, err = ngx.re.match(x, "^[0-9a-fA-F]{24}$", "o")
-    if m then
-      return true
-    end
-  end
-  return false
-end
-
 local function database()
   if not ngx.ctx.database then
     local conn, err = mongo.new(mongo_uri)
@@ -49,6 +39,25 @@ local function redisc()
     ngx.ctx.redisc = redisc
   end
   return ngx.ctx.redisc
+end
+
+local function generate_id()
+  local generate_oid = require("resty.moongoo.utils").generate_oid
+  local b64 = ngx.encode_base64(ngx.sha1_bin(tostring(generate_oid())), true)
+  local id, n, err = ngx.re.gsub(b64, "[+/]", function(m)
+    if m[0] == "+" then
+      return "-"
+    elseif m[0] == "/" then
+      return "_"
+    else
+      return m[0]
+    end
+  end, "o")
+  if not id then
+    ngx.log(ngx.ERR, "regex error: ", err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  return id
 end
 
 local function callback(url, body, count)
@@ -83,17 +92,19 @@ local function callback(url, body, count)
 end
 
 function _M.create_file(filename, prefix)
-  return database():gridfs(prefix):create(filename)
+  return database():gridfs(prefix):create(filename, {
+    _id = generate_id()
+  }, false)
 end
 
 function _M.open_file(id, prefix)
-  if not is_oid(id) then
+  if not id then
     return nil
   end
   if prefix == "" then
     prefix = nil
   end
-  local file, err = database():gridfs(prefix):open(bson.oid(id))
+  local file, err = database():gridfs(prefix):open(id)
   if not file then
     ngx.log(ngx.ERR, "mongodb error: ", err)
   end
@@ -101,13 +112,13 @@ function _M.open_file(id, prefix)
 end
 
 function _M.remove_file(id, prefix)
-  if not is_oid(id) then
+  if not id then
     return
   end
   if prefix == "" then
     prefix = nil
   end
-  database():gridfs(prefix):remove(bson.oid(id))
+  database():gridfs(prefix):remove(id)
 end
 
 function _M.recv_files(prefix, chunk_size, max_num)
@@ -140,7 +151,11 @@ function _M.recv_files(prefix, chunk_size, max_num)
       end
     elseif tp == "body" then
       if file then
-        file:write(res)
+        local ok, err = file:write(res)
+        if not ok then
+          ngx.log(ngx.ERR, "mongodb error: "..err)
+          ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+        end
       end
     elseif tp == "part_end" then
       if file then
@@ -150,7 +165,7 @@ function _M.recv_files(prefix, chunk_size, max_num)
           ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
         end
         table.insert(files, {
-          id = tostring(id),
+          id = id,
           filename = file:filename()
         })
         file = nil
@@ -168,6 +183,7 @@ end
 function _M.add_video(raw)
   local db = database()
   local ids, err = db:collection("videos"):insert({
+    _id = generate_id(),
     raw = raw,
     date = bson.date(ngx.now() * 1000)
   })
@@ -175,7 +191,7 @@ function _M.add_video(raw)
     ngx.log(ngx.ERR, "mongodb error: ", err)
     ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
   end
-  local id = tostring(ids[1])
+  local id = ids[1]
   redisc():lpush("transcoding_tasks", json.encode({
     cmd = "probe",
     vid = id
@@ -184,11 +200,13 @@ function _M.add_video(raw)
 end
 
 function _M.open_raw(id)
-  if not is_oid(id) then
+  if not id then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
-  local qry, err = db:collection("videos"):find_one(bson.oid(id), {
+  local qry, err = db:collection("videos"):find_one({
+    _id = id
+  }, {
     raw = 1
   })
   if not qry then
@@ -206,7 +224,7 @@ function _M.open_raw(id)
 end
 
 function _M.set_raw_meta(id, raw_meta)
-  if not is_oid(id) or not raw_meta then
+  if not id or not raw_meta then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local meta = json.decode(raw_meta)
@@ -217,7 +235,7 @@ function _M.set_raw_meta(id, raw_meta)
   end
   local db = database()
   local num, err = db:collection("videos"):update({
-    _id = bson.oid(id),
+    _id = id,
     raw_meta = {
       ["$exists"] = false
     }
@@ -251,12 +269,12 @@ function _M.set_raw_meta(id, raw_meta)
 end
 
 function _M.cover_task(id, ss)
-  if not is_oid(id) then
+  if not id then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
   local num, err = db:collection("videos"):update({
-    _id = bson.oid(id),
+    _id = id,
     cover = {
       ["$exists"] = false
     }
@@ -284,7 +302,7 @@ end
 function _M.set_cover(id, cover)
   local db = database()
   local num, err = db:collection("videos"):update({
-    _id = bson.oid(id),
+    _id = id,
     cover = ""
   }, {
     ["$set"] = {
@@ -313,7 +331,7 @@ end
 
 function _M.transcode_task(id, profile, width, height, logo_x, logo_y, logo_w,
                            logo_h)
-  if not is_oid(id) or not profile then
+  if not id or not profile then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   if not tonumber(width) then
@@ -335,7 +353,9 @@ function _M.transcode_task(id, profile, width, height, logo_x, logo_y, logo_w,
     logo_h = -1
   end
   local db = database()
-  local qry, err = db:collection("videos"):find_one(bson.oid(id), {
+  local qry, err = db:collection("videos"):find_one({
+    _id = id
+  }, {
     _id = 1
   })
   if not qry then
@@ -428,7 +448,7 @@ function _M.set_segments(id, profile, files)
 end
 
 function _M.get_playlist(id, profile)
-  if not is_oid(id) or not profile then
+  if not id or not profile then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
@@ -469,9 +489,6 @@ function _M.get_playlist(id, profile)
 end
 
 function _M.open_segment(id)
-  if not is_oid(id) then
-    ngx.exit(ngx.HTTP_BAD_REQUEST)
-  end
   local file = _M.open_file(id, "fs.segment")
   if not file then
     ngx.exit(ngx.HTTP_NOT_FOUND)
@@ -480,11 +497,13 @@ function _M.open_segment(id)
 end
 
 function _M.open_cover(id)
-  if not is_oid(id) then
+  if not id then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
-  local qry, err = db:collection("videos"):find_one(bson.oid(id), {
+  local qry, err = db:collection("videos"):find_one({
+    _id = id
+  }, {
     cover = 1
   })
   if not qry then
@@ -502,11 +521,13 @@ function _M.open_cover(id)
 end
 
 function _M.get_video_meta(id)
-  if not is_oid(id) then
+  if not id then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
-  local video_qry, err = db:collection("videos"):find_one(bson.oid(id), {
+  local video_qry, err = db:collection("videos"):find_one({
+    _id = id
+  }, {
     date = 1,
     raw_meta = 1
   })
@@ -542,7 +563,7 @@ function _M.get_video_meta(id)
 end
 
 function _M.remove_video(id)
-  if not is_oid(id) then
+  if not id then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
@@ -572,14 +593,16 @@ function _M.remove_video(id)
     video = id
   })
   db:collection("videos"):update({
-    _id = bson.oid(id),
+    _id = id,
     cover = ""
   }, {
     ["$set"] = {
       cover = "removing"
     }
   })
-  local video_qry, err = db:collection("videos"):find_and_modify(bson.oid(id), {
+  local video_qry, err = db:collection("videos"):find_and_modify({
+    _id = id
+  }, {
     remove = true
   })
   if video_qry then
