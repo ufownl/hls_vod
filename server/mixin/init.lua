@@ -1,0 +1,10 @@
+json = require("cjson.safe")
+json.encode_empty_table_as_object(false)
+upload = require("resty.upload")
+http = require("resty.http")
+bson = require("cbson")
+mongo = require("resty.moongoo")
+redis = require("resty.redis.connector")
+vod_core = require("vod.core")
+-- load configs
+dofile("config.lua")

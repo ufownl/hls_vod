@@ -37,7 +37,7 @@
 
 ### 运行
 
-启动*web server*前需先启动[MongoDB](https://www.mongodb.com/)及[Redis](https://redis.io/)，并修改*init.lua*文件中相应的配置项，使*web server*能够正确访问[MongoDB](https://www.mongodb.com/)及[Redis](https://redis.io/)服务。
+启动*web server*前需先启动[MongoDB](https://www.mongodb.com/)及[Redis](https://redis.io/)，并修改*config.lua*文件中相应的配置项，使*web server*能够正确访问[MongoDB](https://www.mongodb.com/)及[Redis](https://redis.io/)服务。
 
 ```bash
 $ ./resolvers.sh
@@ -193,7 +193,7 @@ id | string | 视频ID
 
 ### 回调事件
 
-**HLS vod**会在一些特定事件完成时调用*init.lua*中设置的回调接口，以方便业务层对视频状态的改变做出响应。若回调失败，*web server*会以1分钟为间隔重复回调，直到回调成功或总回调次数达到30次。
+**HLS vod**会在一些特定事件完成时调用*config.lua*中设置的回调接口，以方便业务层对视频状态的改变做出响应。若回调失败，*web server*会以1分钟为间隔重复回调，直到回调成功或总回调次数达到30次。
 
 #### raw_meta事件
 
