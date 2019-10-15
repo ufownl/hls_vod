@@ -3,7 +3,7 @@
 logs/
 
 # nginx resolvers configure files
-resolvers/
+ngx_conf/resolvers/
 
 # nginx temporary directories
 *_temp/
