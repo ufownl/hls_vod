@@ -17,7 +17,7 @@ def worker_entry(args, now, worker_idx):
     while True:
         task = redisc.brpop("transcoding_tasks")
         if task:
-            core(task[1])
+            core(task[1].decode())
 
 
 if __name__ == "__main__":
