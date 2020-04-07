@@ -7,10 +7,3 @@ ngx_conf/resolvers/
 
 # nginx temporary directories
 *_temp/
-
-# lua c_module files
-*.so
-
-# sprotect compilers configure files
-sprotect_utilities/
-sprotect_compilers/
