@@ -268,6 +268,23 @@ function _M.set_raw_meta(id, raw_meta)
   end, ngx.encode_args(meta))
 end
 
+function _M.probe_error(id, error)
+  if not id or not error then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  ngx.timer.at(0, function(premature, body)
+    if premature then
+      return
+    end
+    for i, v in ipairs(config.callbacks.raw_meta) do
+      callback(v, body)
+    end
+  end, ngx.encode_args({
+    id = id,
+    error = error
+  }))
+end
+
 function _M.cover_task(id, ss)
   if not id then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
@@ -326,6 +343,39 @@ function _M.set_cover(id, cover)
     end
   end, ngx.encode_args({
     id = id
+  }))
+end
+
+function _M.cover_error(id, error)
+  if not id or not error then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local db = database()
+  local num, err = db:collection("videos"):update({
+    _id = id,
+    cover = ""
+  }, {
+    ["$unset"] = {
+      cover = 1
+    }
+  })
+  if not num then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  if num <= 0 then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  ngx.timer.at(0, function(premature, body)
+    if premature then
+      return
+    end
+    for i, v in ipairs(config.callbacks.cover) do
+      callback(v, body)
+    end
+  end, ngx.encode_args({
+    id = id,
+    error = error
   }))
 end
 
@@ -444,6 +494,39 @@ function _M.set_segments(id, profile, files)
   end, ngx.encode_args({
     id = id,
     profile = profile
+  }))
+end
+
+function _M.transcode_error(id, profile, error)
+  if not id or not profile or not error then
+    ngx.exit(ngx.HTTP_BAD_REQUEST)
+  end
+  local db = database()
+  local num, err = db:collection("segments"):remove({
+    video = id,
+    profile = profile,
+    segments = {
+      ["$exists"] = false
+    }
+  })
+  if not num then
+    ngx.log(ngx.ERR, "mongodb error: ", err)
+    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+  end
+  if num <= 0 then
+    ngx.exit(ngx.HTTP_NOT_FOUND)
+  end
+  ngx.timer.at(0, function(premature, body)
+    if premature then
+      return
+    end
+    for i, v in ipairs(config.callbacks.transcode) do
+      callback(v, body)
+    end
+  end, ngx.encode_args({
+    id = id,
+    profile = profile,
+    error = error
   }))
 end
 

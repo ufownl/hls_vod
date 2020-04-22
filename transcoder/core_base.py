@@ -40,22 +40,24 @@ class CoreBase(metaclass=ABCMeta):
 
     @abstractmethod
     def probe(self, raw):
-        return None
+        return None, "Not implemented."
 
     @abstractmethod
     def cover(self, raw, params):
-        return None
+        return None, "Not implemented."
 
     @abstractmethod
     def transcode(self, raw, params):
-        return None
+        return None, "Not implemented."
 
     def _download_raw(self, vid):
         try:
-            url = self._api_entry + "/hls_vod/api/download/raw"
-            r = requests.get(url, params={
-                "id": vid
-            })
+            r = requests.get(
+                self._api_entry + "/hls_vod/api/download/raw",
+                params = {
+                    "id": vid
+                }
+            )
             if r.status_code != requests.codes.ok:
                 return None
             m = self._filename_pattern.match(r.headers["Content-Disposition"])
@@ -75,38 +77,64 @@ class CoreBase(metaclass=ABCMeta):
             return None
 
     def _handle_probe(self, vid, raw):
-        meta = self.probe(raw)
+        meta, err = self.probe(raw)
         if not meta:
+            self._report_error({
+                "task": "probe",
+                "id": vid,
+                "error": err
+            })
             return
         try:
-            url = self._api_entry + "/hls_vod/api/set_raw_meta"
-            requests.post(url, data={
-                "id": vid,
-                "meta": json.dumps(meta)
-            })
+            requests.post(
+                self._api_entry + "/hls_vod/api/set_raw_meta",
+                data = {
+                    "id": vid,
+                    "meta": json.dumps(meta)
+                }
+            )
         except requests.exceptions.RequestException as e:
             print("http error: ", e)
 
     def _handle_cover(self, vid, raw, params):
-        cover = self.cover(raw, params)
-        if not cover or not os.path.isfile(cover):
+        cover, err = self.cover(raw, params)
+        if not cover:
+            self._report_error({
+                "task": "cover",
+                "id": vid,
+                "error": err
+            })
             return
         try:
-            url = self._api_entry + "/hls_vod/api/upload/" + vid + "/cover"
-            requests.post(url, files={
-                "cover": open(cover, "rb")
-            })
+            requests.post(
+                self._api_entry + "/hls_vod/api/upload/" + vid + "/cover",
+                files = {
+                    "cover": open(cover, "rb")
+                }
+            )
         except requests.exceptions.RequestException as e:
             print("http error: ", e)
         except OSError as e:
             print("system error: ", e)
+            self._report_error({
+                "task": "cover",
+                "id": vid,
+                "error": repr(e)
+            })
         finally:
-            os.remove(cover)
+            if os.path.isfile(cover):
+                os.remove(cover)
 
     def _handle_transcode(self, vid, raw, params):
         profile = params["profile"]
-        playlist = self.transcode(raw, params)
-        if not playlist or not os.path.isfile(playlist):
+        playlist, err = self.transcode(raw, params)
+        if not playlist:
+            self._report_error({
+                "task": "transcode",
+                "id": vid,
+                "profile": profile,
+                "error": err
+            })
             return
         segments = m3u8.load(playlist).segments
         try:
@@ -119,7 +147,25 @@ class CoreBase(metaclass=ABCMeta):
             print("http error: ", e)
         except OSError as e:
             print("system error: ", e)
+            self._report_error({
+                "task": "transcode",
+                "id": vid,
+                "profile": profile,
+                "error": repr(e)
+            })
         finally:
             for seg in segments:
-                os.remove(os.path.join(self._work_dir, seg.uri))
-            os.remove(playlist)
+                ts_file = os.path.join(self._work_dir, seg.uri)
+                if os.path.isfile(ts_file):
+                    os.remove(ts_file)
+            if os.path.isfile(playlist):
+                os.remove(playlist)
+
+    def _report_error(self, params):
+        try:
+            requests.post(
+                self._api_entry + "/hls_vod/api/transcoder_error",
+                data = params
+            )
+        except requests.exceptions.RequestException as e:
+            print("http error: ", e)

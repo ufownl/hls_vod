@@ -24,10 +24,10 @@ class FFmpegCore(CoreBase):
                 "bit_rate": fmt["bit_rate"],
                 "width": width,
                 "height": height
-            }
+            }, None
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)
-            return None
+            return None, repr(e)
 
     def cover(self, raw, params):
         base, _ = os.path.splitext(raw)
@@ -35,10 +35,10 @@ class FFmpegCore(CoreBase):
         ss = params["ss"]
         try:
             ffmpeg.input(raw, ss=ss, stream_loop=-1).output(cover, vframes=1).overwrite_output().run()
-            return cover
+            return cover, None
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)
-            return None
+            return None, repr(e)
 
     def transcode(self, raw, params):
         base, _ = os.path.splitext(raw)
@@ -60,7 +60,7 @@ class FFmpegCore(CoreBase):
                 v = v.overlay(logo, x=logo_x, y=logo_y)
             a = stream.audio
             ffmpeg.output(v, a, playlist, hls_time=10, hls_list_size=0).overwrite_output().run()
-            return playlist
+            return playlist, None
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)
-            return None
+            return None, repr(e)
