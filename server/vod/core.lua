@@ -15,7 +15,7 @@ local function database()
     local conn, err = mongo.new(config.mongo.uri)
     if not conn then
       ngx.log(ngx.ERR, "failed to new mongodb connection: ", err)
-      ngx.exit(ngx.HTTP_BAD_GATEWAY)
+      ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
     end
     ngx.ctx.database = conn:db(config.mongo.db)
   end
@@ -29,12 +29,12 @@ local function redisc()
     })
     if not connector then
       ngx.log(ngx.ERR, "redis error: ", err)
-      ngx.exit(ngx.HTTP_BAD_GATEWAY)
+      ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
     end
     local redisc, err = connector:connect()
     if not redisc then
       ngx.log(ngx.ERR, "redis error: ", err)
-      ngx.exit(ngx.HTTP_BAD_GATEWAY)
+      ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
     end
     ngx.ctx.redisc = redisc
   end
