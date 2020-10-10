@@ -58,7 +58,7 @@ class FFmpegCore(CoreBase):
                 logo = ffmpeg.input(self._logo)
                 logo = logo.filter("scale", width=logo_w, height=logo_h)
                 v = v.overlay(logo, x=logo_x, y=logo_y)
-            a = stream.audio
+            a = stream["a?"]
             ffmpeg.output(v, a, playlist, hls_time=10, hls_list_size=0).overwrite_output().run()
             return playlist, None
         except ffmpeg.Error as e:
