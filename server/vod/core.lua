@@ -12,12 +12,12 @@ end
 
 local function database()
   if not ngx.ctx.database then
-    local conn, err = mongo.new(config.mongo.uri)
+    local conn, err = mongo.new(config().mongo.uri)
     if not conn then
       ngx.log(ngx.ERR, "failed to new mongodb connection: ", err)
       ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
     end
-    ngx.ctx.database = conn:db(config.mongo.db)
+    ngx.ctx.database = conn:db(config().mongo.db)
   end
   return ngx.ctx.database
 end
@@ -25,7 +25,7 @@ end
 local function redisc()
   if not ngx.ctx.redisc then
     local connector, err = redis.new({
-      url = config.redis.uri
+      url = config().redis.uri
     })
     if not connector then
       ngx.log(ngx.ERR, "redis error: ", err)
@@ -262,7 +262,7 @@ function _M.set_raw_meta(id, raw_meta)
     if premature then
       return
     end
-    for i, v in ipairs(config.callbacks.raw_meta) do
+    for i, v in ipairs(config().callbacks.raw_meta) do
       callback(v, body)
     end
   end, ngx.encode_args(meta))
@@ -276,7 +276,7 @@ function _M.probe_error(id, error)
     if premature then
       return
     end
-    for i, v in ipairs(config.callbacks.raw_meta) do
+    for i, v in ipairs(config().callbacks.raw_meta) do
       callback(v, body)
     end
   end, ngx.encode_args({
@@ -338,7 +338,7 @@ function _M.set_cover(id, cover)
     if premature then
       return
     end
-    for i, v in ipairs(config.callbacks.cover) do
+    for i, v in ipairs(config().callbacks.cover) do
       callback(v, body)
     end
   end, ngx.encode_args({
@@ -370,7 +370,7 @@ function _M.cover_error(id, error)
     if premature then
       return
     end
-    for i, v in ipairs(config.callbacks.cover) do
+    for i, v in ipairs(config().callbacks.cover) do
       callback(v, body)
     end
   end, ngx.encode_args({
@@ -488,7 +488,7 @@ function _M.set_segments(id, profile, files)
     if premature then
       return
     end
-    for i, v in ipairs(config.callbacks.transcode) do
+    for i, v in ipairs(config().callbacks.transcode) do
       callback(v, body)
     end
   end, ngx.encode_args({
@@ -520,7 +520,7 @@ function _M.transcode_error(id, profile, error)
     if premature then
       return
     end
-    for i, v in ipairs(config.callbacks.transcode) do
+    for i, v in ipairs(config().callbacks.transcode) do
       callback(v, body)
     end
   end, ngx.encode_args({
