@@ -17,9 +17,12 @@ local function database()
       ngx.log(ngx.ERR, "failed to new mongodb connection: ", err)
       ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
     end
-    ngx.ctx.database = conn:db(config().mongo.db)
+    ngx.ctx.database = {
+      conn = conn,
+      db = conn:db(config().mongo.db)
+    }
   end
-  return ngx.ctx.database
+  return ngx.ctx.database.db
 end
 
 local function redisc()
@@ -88,6 +91,15 @@ local function callback(url, body, count)
       end
       callback(url, body, count)
     end)
+  end
+end
+
+function _M.keepalive()
+  if ngx.ctx.database then
+    ngx.ctx.database.conn:close()
+  end
+  if ngx.ctx.redisc then
+    ngx.ctx.redisc:set_keepalive()
   end
 end
 

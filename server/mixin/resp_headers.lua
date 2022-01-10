@@ -1,3 +1,4 @@
+vod_core.keepalive()
 ngx.header["Access-Control-Allow-Origin"] = "*"
 ngx.header["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE"
 ngx.header["Access-Control-Allow-Headers"] =
