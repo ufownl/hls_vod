@@ -73,8 +73,7 @@ local function callback(url, body, count)
     headers = {
       ["Content-Type"] = "application/x-www-form-urlencoded"
     },
-    body = body,
-    ssl_verify = false
+    body = body
   })
   if res then
     if res.status == ngx.HTTP_OK then
