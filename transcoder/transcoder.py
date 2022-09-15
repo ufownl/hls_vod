@@ -56,6 +56,7 @@ if __name__ == "__main__":
     parser.add_argument("--logo", help="set the path of logo file", type=str)
     args = parser.parse_args()
 
+    print("HLS_vod  Copyright (C) 2022  RangerUFO")
     redis_cfg = query_redis_cfg(args)
     now = time.time()
     processes = [Process(target=worker_entry, args=(args, redis_cfg, now, i)) for i in range(args.workers)]
