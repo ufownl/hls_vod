@@ -1,5 +1,5 @@
 #! /bin/sh
-# 转码指定视频
+# Request to transcode a specific video
 
 curl -v --data-urlencode "id=$1" \
      --data-urlencode "profile=$2" \
@@ -11,13 +11,13 @@ curl -v --data-urlencode "id=$1" \
      --data-urlencode "logo_h=$8" \
      "http://localhost:2980/hls_vod/api/transcode"
 
-# 参数:
-# id: 视频ID
-# profile: 转码规格名称
-# width/height: 输出视频宽度/高度(-1表示按比例缩放 可选参数 默认值: -1)
-# logo_x/logo_y: LOGO水印位置(可选参数 默认值: 0)
-# logo_w/logo_h: LOGO水印宽度/高度(-1表示按比例缩放 可选参数 默认值: -1)
-# 返回:
+# Parameters:
+# id: Video ID
+# profile: Profile Name
+# width/height: Width/Height of the Output Video (-1 means scaling in the aspect ratio, Optional, Default: -1)
+# logo_x/logo_y: Position of LOGO Watermark (Optional, Default: 0)
+# logo_w/logo_h: Width/Height of LOGO Watermark (-1 means scaling in the aspect ratio, Optional, Default: -1)
+# Return:
 # {
-#   "path": "视频转码成功后的资源路径"
+#   "path": "Resource Path of the Transcoded Video"
 # }

@@ -1,297 +1,298 @@
 # HLS vod
 
-**HLS vod**是一款提供视频上传、转码、储存、发布功能的服务端软件，可用作提供视频点播服务的网站及APP的视频源站。本软件由*web server*和*transcoder*两部分组成，*web server*用于提供视频访问及API服务，*transcoder*用于处理视频转码请求。
+**HLS vod** is server software that provides video uploading, transcoding, storage, and delivery. It can be used as the origin server for websites and APPs that provide video-on-demand services. It consists of two parts: the *Web Server* and the *Transcoder*, the former provides video access and API services, and the latter provides online video transcoding.
 
-## 目录
+## Contents
 
-* [web server](#web-server)
-  * [依赖项](#依赖项)
-  * [运行](#运行)
-  * [访问视频](#访问视频)
+* [Web Server](#web-server)
+  * [Dependencies](#dependencies)
+  * [Run](#run)
+  * [Video Access](#video-access)
   * [HTTP APIs](#http-apis)
-    * [上传视频源文件](#上传视频源文件)
-    * [下载视频源文件](#下载视频源文件)
-    * [提取视频封面](#提取视频封面)
-    * [视频转码](#视频转码)
-    * [获取视频列表](#获取视频列表)
-    * [查询指定视频元数据](#查询指定视频元数据)
-    * [删除指定视频](#删除指定视频)
-  * [回调事件](#回调事件)
-    * [raw_meta事件](#raw_meta事件)
-    * [cover事件](#cover事件)
-    * [transcode事件](#transcode事件)
-* [transcoder](#transcoder)
-  * [依赖项](#依赖项-1)
-  * [运行](#运行-1)
+    * [Upload Raw Video](#upload-raw-video)
+    * [Download Raw Video](#download-raw-video)
+    * [Extract Video Cover](#extract-video-cover)
+    * [Video Transcode](#video-transcode)
+    * [Query Videos](#query-videos)
+    * [Query Video Meta-Data](#query-video-meta-data)
+    * [Remove Video](#remove-video)
+  * [Callbacks](#callbacks)
+    * [*raw_meta* Callback](#raw_meta-callback)
+    * [*cover* Callback](#cover-callback)
+    * [*transcode* Callback](#transcode-callback)
+* [Transcoder](#transcoder)
+  * [Dependencies](#dependencies-1)
+  * [Run](#run-1)
 
-## web server
+## Web Server
 
-用于提供视频访问及API服务。
+It provides video access and API services.
 
-### 依赖项
+### Dependencies
 
 * [OpenResty](https://openresty.org/)
   * [lua-resty-http](https://github.com/ledgetech/lua-resty-http)
   * [lua-resty-moongoo](https://github.com/isage/lua-resty-moongoo)
   * [lua-resty-redis-connector](https://github.com/ledgetech/lua-resty-redis-connector)
 
-### 运行
+### Run
 
-启动*web server*前需先启动[MongoDB](https://www.mongodb.com/)及[Redis](https://redis.io/)，并修改*config.lua*文件中相应的配置项，使*web server*能够正确访问[MongoDB](https://www.mongodb.com/)及[Redis](https://redis.io/)服务。
+Before starting the *Web Server*, you need to start [MongoDB](https://www.mongodb.com/) and [Redis](https://redis.io/) and modify the corresponding configuration items in the *config.lua* file, so that the *Web Server* can correctly access the [MongoDB](https://www.mongodb.com/) and [Redis](https://redis.io/) services.
 
 ```bash
 $ ./resolvers.sh
+$ ./lua_ssl.sh
 $ openresty -p . -c hls_vod.conf
 ```
 
-### 访问视频
+### Video Access
 
-* 视频封面：`http[s]://<服务器地址>/hls_vod/media/<视频ID>.jpg`
-* HLS播放列表：`http[s]://<服务器地址>/hls_vod/media/<视频ID>_<转码规格名称>.m3u8`
+* Video Cover: `http[s]://<Server Netloc>/hls_vod/media/<Video ID>.jpg`
+* HLS Playlist: `http[s]://<Server Netloc>/hls_vod/media/<Video ID>_<Profile>.m3u8`
 
 ### HTTP APIs
 
-#### 上传视频源文件
+#### Upload Raw Video
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/upload/raw`
-* 请求方式：`POST`
-* 请求类型：`multipart/form-data`
-* 返回值：调用成功返回HTTP状态码200
-* 返回类型：`application/json`
-* 返回内容：
+* URL: `http://<Server Hostname>:2980/hls_vod/api/upload/raw`
+* Request Method: `POST`
+* Request Content-Type: `multipart/form-data`
+* HTTP Status: 200 means success
+* Response Content-Type: `application/json`
+* Response Body:
 
 ```json
 [
   {
-    "id": "<视频ID>",
-    "filename": "<原始视频文件名>"
+    "id": "<Video ID>",
+    "filename": "<Filename of Raw Video>"
   },
   ...
 ]
 ```
 
-#### 下载视频源文件
+#### Download Raw Video
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/download/raw`
-* 请求方式：`GET`
-* URL参数：
+* URL: `http://<Server Hostname>:2980/hls_vod/api/download/raw`
+* Request Method: `GET`
+* URL Parameters: 
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
 
-* 返回值：调用成功返回HTTP状态码200
-* 返回类型：`application/octet-stream`
-* 返回内容：文件二进制流
+* HTTP Status: 200 means success
+* Response Content-Type: `application/octet-stream`
+* Response Body: Binary Data Stream
 
-#### 提取视频封面
+#### Extract Video Cover
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/extract_cover`
-* 请求方式：`POST`
-* 请求类型：`application/x-www-form-urlencoded`
-* 请求参数：
+* URL: `http://<Server Hostname>:2980/hls_vod/api/extract_cover`
+* Request Method: `POST`
+* Request Content-Type: `application/x-www-form-urlencoded`
+* Request Parameters: 
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
-ss | double | 封面截取时间(秒) *可选参数 默认值：0*
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
+ss | double | Timeline Position of the Cover (second) *Optional Default: 0*
 
-* 返回值：调用成功返回HTTP状态码202
-* 返回类型：`application/json`
-* 返回内容：
-
-```json
-{
-  "path": "<封面提取成功后的资源路径>"
-}
-```
-
-#### 视频转码
-
-* URL：`http://<服务器地址>:2980/hls_vod/api/transcode`
-* 请求方式：`POST`
-* 请求类型：`application/x-www-form-urlencoded`
-* 请求参数：
-
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
-profile | string | 转码规格名称
-width/height | int | 输出视频宽度/高度(-1表示按比例缩放) *可选参数 默认值: -1*
-logo_x/logo_y | int | LOGO水印位置(0,0表示左上角) *可选参数 默认值: 0*
-logo_w/logo_h | int | LOGO水印宽度/高度(-1表示按比例缩放) *可选参数 默认值: -1*
-
-* 返回值：调用成功返回HTTP状态码202
-* 返回类型：`application/json`
-* 返回内容：
+* HTTP Status: 202 means success
+* Response Content-Type: `application/json`
+* Response Body: 
 
 ```json
 {
-  "path": "<视频转码成功后的资源路径>"
+  "path": "<Resource Path of the Extracted Cover>"
 }
 ```
 
-#### 查询视频列表
+#### Video Transcode
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/videos`
-* 请求方式：`GET`
-* URL参数：
+* URL: `http://<Server Hostname>:2980/hls_vod/api/transcode`
+* Request Method: `POST`
+* Request Content-Type: `application/x-www-form-urlencoded`
+* Request Parameters: 
 
-名称 | 类型 | 说明
----- | ---- | ----
-start/finish | double | 上传时间范围(unix时间戳) *可选参数*
-skip/limit | int | 分页参数 *可选参数*
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
+profile | string | Profile Name
+width/height | int | Width/Height of the Output Video (-1 means scaling in the aspect ratio) *Optional Default: -1*
+logo_x/logo_y | int | Position of LOGO Watermark (0,0 means top left) *Optional Default: 0*
+logo_w/logo_h | int | Width/Height of the LOGO Watermark (-1 means scaling in the aspect ratio) *Optional Default: -1*
 
-* 返回值：调用成功返回HTTP状态码200
-* 返回类型：`application/json`
-* 返回内容：
+* HTTP Status: 202 means success
+* Response Content-Type: `application/json`
+* Response Body: 
+
+```json
+{
+  "path": "<Resource Path of the Transcoded Video>"
+}
+```
+
+#### Query Videos
+
+* URL: `http://<Server Hostname>:2980/hls_vod/api/videos`
+* Request Method: `GET`
+* URL Parameters: 
+
+Name | Type | Description
+---- | ---- | -----------
+start/finish | double | Upload Time Range (Unix Timestamp) *Optional*
+skip/limit | int | Parameters of Pagination *Optional*
+
+* HTTP Status: 200 means success
+* Response Content-Type: `application/json`
+* Response Body: 
 
 ```json
 {
   "videos": [
     {
-      "id": "<视频ID>",
-      "date": <视频上传时间(unix时间戳)>,
-      "duration": <视频时长(秒)>,
-      "raw_width": <原始视频宽度>,
-      "raw_height": <原始视频高度>,
+      "id": "<Video ID>",
+      "date": <Upload Time (Unix Timestamp)>,
+      "duration": <Video Duration (second)>,
+      "raw_width": <Width of Raw Video>,
+      "raw_height": <Height of Raw Video>,
       "profiles": [
-        "<转码规格名称>",
+        "<Profile Name>",
         ...
       ]
     },
     ...
   ],
-  "total": <视频总数量>
+  "total": <Total Number of Videos>
 }
 ```
 
-#### 查询指定视频元数据
+#### Query Video Meta-Data
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/video_meta`
-* 请求方式：`GET`
-* URL参数：
+* URL: `http://<Server Hostname>:2980/hls_vod/api/video_meta`
+* Request Method: `GET`
+* URL Parameters: 
 
-名称 | 类型 | 说明
+Name | Type | Description
 ---- | ---- | ----
-id | string | 视频ID
+id | string | Video ID
 
-* 返回值：调用成功返回HTTP状态码200
-* 返回类型：`application/json`
-* 返回内容：
+* HTTP Status: 200 means success
+* Response Content-Type: `application/json`
+* Response Body: 
 
 ```json
 {
-  "id": "<视频ID>",
-  "date": <视频上传时间(unix时间戳)>,
-  "duration": <视频时长(秒)>,
-  "raw_width": <原始视频宽度>,
-  "raw_height": <原始视频高度>,
+  "id": "<Video ID>",
+  "date": <Upload Time (Unix Timestamp)>,
+  "duration": <Video Duration (second)>,
+  "raw_width": <Width of Raw Video>,
+  "raw_height": <Height of Raw Video>,
   "profiles": [
-    "<转码规格名称>",
+    "<Profile Name>",
     ...
   ]
 }
 ```
 
-#### 删除指定视频
+#### Remove Video
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/remove_video`
-* 请求方式：`POST`
-* 请求类型：`application/x-www-form-urlencoded`
-* 请求参数：
+* URL: `http://<Server Hostname>:2980/hls_vod/api/remove_video`
+* Request Method: `POST`
+* Request Content-Type: `application/x-www-form-urlencoded`
+* Request Parameters: 
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
 
-* 返回值：调用成功返回HTTP状态码204
+* HTTP Status: 204 means success
 
-### 回调事件
+### Callbacks
 
-**HLS vod**会在一些特定事件完成时调用*config.lua*中设置的回调接口，以方便业务层对视频状态的改变做出响应。若回调失败，*web server*会以1分钟为间隔重复回调，直到回调成功或总回调次数达到30次。
+**HLS vod** will call the callbacks set in *config.lua* when some specific events are completed, so that the upper business layer can respond to the changes in the video state. If the callback fails, the Web Server will repeat the callback every minute until it succeeds (up to 30 times).
 
-#### raw_meta事件
+#### *raw_meta* Callback
 
-视频源文件上传成功后，*web server*会自动发起解析视频的请求，解析完成后会触发该回调事件返回源视频的元数据。业务层可在该回调事件接口中根据源视频的元数据发起截取视频封面和转码的请求。
+After the raw video is uploaded successfully, the *Web Server* will automatically request the *Transcoder* to parse the video. When the parsing is completed, this callback will be called to pass the meta-data of the video to the upper business layer. Then you can request extracting the video cover and transcoding the video in this callback.
 
-* 请求方式：`POST`
-* 请求类型：`application/x-www-form-urlencoded`
-* 请求参数：
+* Request Method: `POST`
+* Request Content-Type: `application/x-www-form-urlencoded`
+* Request Parameters: 
 
-*解析成功*
+*Parsing Succeeded*
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
-format | string | 源视频格式信息
-duration | double | 视频时长(秒)
-bit_rate | int | 源视频码率
-width | int | 源视频宽度
-height | int | 源视频高度
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
+format | string | Format of Raw Video
+duration | double | Video Duration (second)
+bit_rate | int | Bitrate of Raw Video
+width | int | Width of Raw Video
+height | int | Height of Raw Video
 
-*解析失败*
+*Parsing Failed*
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
-error | string | 错误信息
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
+error | string | Error Description
 
-* 返回值：返回HTTP状态码200/204表示回调成功
+* HTTP Status: 200/204 means success
 
-#### cover事件
+#### *cover* Callback
 
-视频封面截取完成后触发该回调事件。
+This callback will be called after the video cover extracting is completed.
 
-* 请求方式：`POST`
-* 请求类型：`application/x-www-form-urlencoded`
-* 请求参数：
+* Request Method: `POST`
+* Request Content-Type: `application/x-www-form-urlencoded`
+* Request Parameters: 
 
-*截取成功*
+*Extracting Succeeded*
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
 
-*截取失败*
+*Extracting Failed*
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
-error | string | 错误信息
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
+error | string | Error Description
 
-* 返回值：返回HTTP状态码200/204表示回调成功
+* HTTP Status: 200/204 means success
 
-#### transcode事件
+#### *transcode* Callback
 
-视频转码完成后触发该回调事件。
+This callback will be called after the video transcoding is completed.
 
-* 请求方式：`POST`
-* 请求类型：`application/x-www-form-urlencoded`
-* 请求参数：
+* Request Method: `POST`
+* Request Content-Type: `application/x-www-form-urlencoded`
+* Request Parameters: 
 
-*转码成功*
+*Transcoding Succeeded*
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
-profile | string | 转码规格名称
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
+profile | string | Profile Name
 
-*转码失败*
+*Transcoding Failed*
 
-名称 | 类型 | 说明
----- | ---- | ----
-id | string | 视频ID
-profile | string | 转码规格名称
-error | string | 错误信息
+Name | Type | Description
+---- | ---- | -----------
+id | string | Video ID
+profile | string | Profile Name
+error | string | Error Description
 
-* 返回值：返回HTTP状态码200/204表示回调成功
+* HTTP Status: 200/204 means success
 
-## transcoder
+## Transcoder
 
-用于处理视频转码请求。
+It provides the video parsing and transcoding services.
 
-### 依赖项
+### Dependencies
 
 * [Python3](https://www.python.org/)
   * [redis-py](https://github.com/andymccurdy/redis-py)
@@ -299,12 +300,12 @@ error | string | 错误信息
   * [requests](http://python-requests.org/)
   * [ffmpeg-python](https://github.com/kkroening/ffmpeg-python)
 
-安装依赖项：
+Install dependencies:
 ```bash
 $ pip3 install -r requirements.txt
 ```
 
-### 运行
+### Run
 
 ```bash
 $ python3 transcoder.py --help
@@ -320,12 +321,3 @@ optional arguments:
                         set the entry of platform APIs (default: http://127.0.0.1:2980)
   --logo LOGO           set the path of logo file
 ```
-
-命令行参数：
-
-参数 | 说明
----- | ----
---work_dir | 设置工作目录 *默认值: /tmp*
---workers | 设置工作进程数量 *默认值: CPU数x2*
---api_entry | 设置API入口URI *默认值: http://127.0.0.1:2980*
---logo | 设置LOGO文件路径

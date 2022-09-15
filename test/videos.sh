@@ -1,5 +1,5 @@
 #! /bin/sh
-# 获取视频列表
+# Query the videos
 
 curl -v -G --data-urlencode "start=$1" \
      --data-urlencode "finish=$2" \
@@ -7,23 +7,24 @@ curl -v -G --data-urlencode "start=$1" \
      --data-urlencode "limit=$4" \
      "http://localhost:2980/hls_vod/api/videos"
 
-# 参数:
-# start/finish: 上传时间范围(unix时间戳 可选参数)
-# skip/limit: 分页参数(可选参数)
-# 返回:
+# Parameters:
+# start/finish: Upload Time Range (Unix Timestamp, Optional)
+# skip/limit: Parameters of Pagination (Optional)
+# Return:
 # {
 #   "videos": [
 #     {
-#       "id": "视频ID",
-#       "date": 视频上传时间(unix时间戳),
-#       "duration": 视频时长(秒),
-#       "raw_width": 原始视频宽度,
-#       "raw_height": 原始视频高度,
+#       "id": "Video ID",
+#       "date": Upload Time (Unix Timestamp),
+#       "duration": Video Duratoin (second),
+#       "raw_width": Width of Raw Video,
+#       "raw_height": Height of Raw Video,
 #       "profiles": [
-#         ... 视频转码规格
+#         "Profile Name",
+#         ...
 #       ]
 #     },
 #     ...
 #   ],
-#   "total": 视频总数量
+#   "total": Total Number of Videos
 # }

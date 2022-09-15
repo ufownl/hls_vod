@@ -1,5 +1,5 @@
 #! /bin/sh
-# 上传原始视频
+# Upload the raw videos
 
 curl -v -F "filename=@$1" \
      "http://localhost:2980/hls_vod/api/upload/raw"
@@ -7,8 +7,8 @@ curl -v -F "filename=@$1" \
 # 返回:
 # [
 #   {
-#     "id": "视频ID",
-#     "filename": "原始视频文件名"
+#     "id": "Video ID",
+#     "filename": "Filename of Raw Video"
 #   },
 #   ...
 # ]
