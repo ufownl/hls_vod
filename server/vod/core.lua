@@ -76,7 +76,7 @@ local function callback(url, body, count)
     body = body
   })
   if res then
-    if res.status == ngx.HTTP_OK then
+    if res.status == ngx.HTTP_OK or res.status == ngx.HTTP_NO_CONTENT then
       return
     end
   else

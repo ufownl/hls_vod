@@ -96,7 +96,15 @@ id | string | 视频ID
 id | string | 视频ID
 ss | double | 封面截取时间(秒) *可选参数 默认值：0*
 
-* 返回值：调用成功返回HTTP状态码204
+* 返回值：调用成功返回HTTP状态码202
+* 返回类型：`application/json`
+* 返回内容：
+
+```json
+{
+  "path": "<封面提取成功后的资源路径>"
+}
+```
 
 #### 视频转码
 
@@ -113,7 +121,15 @@ width/height | int | 输出视频宽度/高度(-1表示按比例缩放) *可选�
 logo_x/logo_y | int | LOGO水印位置(0,0表示左上角) *可选参数 默认值: 0*
 logo_w/logo_h | int | LOGO水印宽度/高度(-1表示按比例缩放) *可选参数 默认值: -1*
 
-* 返回值：调用成功返回HTTP状态码204
+* 返回值：调用成功返回HTTP状态码202
+* 返回类型：`application/json`
+* 返回内容：
+
+```json
+{
+  "path": "<视频转码成功后的资源路径>"
+}
+```
 
 #### 查询视频列表
 
@@ -189,7 +205,7 @@ id | string | 视频ID
 ---- | ---- | ----
 id | string | 视频ID
 
-* 返回值：调用成功返回HTTP状态码200
+* 返回值：调用成功返回HTTP状态码204
 
 ### 回调事件
 
@@ -221,7 +237,7 @@ height | int | 源视频高度
 id | string | 视频ID
 error | string | 错误信息
 
-* 返回值：返回HTTP状态码200表示回调成功
+* 返回值：返回HTTP状态码200/204表示回调成功
 
 #### cover事件
 
@@ -244,7 +260,7 @@ id | string | 视频ID
 id | string | 视频ID
 error | string | 错误信息
 
-* 返回值：返回HTTP状态码200表示回调成功
+* 返回值：返回HTTP状态码200/204表示回调成功
 
 #### transcode事件
 
@@ -269,7 +285,7 @@ id | string | 视频ID
 profile | string | 转码规格名称
 error | string | 错误信息
 
-* 返回值：返回HTTP状态码200表示回调成功
+* 返回值：返回HTTP状态码200/204表示回调成功
 
 ## transcoder
 
