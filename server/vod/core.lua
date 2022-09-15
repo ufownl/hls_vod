@@ -203,7 +203,7 @@ function _M.add_video(raw)
     ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
   end
   local id = ids[1]
-  redisc():lpush("transcoding_tasks", json.encode({
+  redisc():lpush(config().redis.tq, json.encode({
     cmd = "probe",
     vid = id
   }))
@@ -318,7 +318,7 @@ function _M.cover_task(id, ss)
   if num <= 0 then
     ngx.exit(ngx.HTTP_NOT_FOUND)
   end
-  redisc():lpush("transcoding_tasks", json.encode({
+  redisc():lpush(config().redis.tq, json.encode({
     cmd = "cover",
     vid = id,
     params = {
@@ -437,7 +437,7 @@ function _M.transcode_task(id, profile, width, height, logo_x, logo_y, logo_w,
   if err <= 0 then
     ngx.exit(ngx.HTTP_CONFLICT)
   end
-  redisc():lpush("transcoding_tasks", json.encode({
+  redisc():lpush(config().redis.tq, json.encode({
     cmd = "transcode",
     vid = id,
     params = {
