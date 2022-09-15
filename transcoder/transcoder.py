@@ -3,8 +3,18 @@ import time
 import argparse
 import requests
 import redis
+from urllib.parse import urlparse
 from multiprocessing import cpu_count, Process
 from ffmpeg_core import FFmpegCore
+
+
+def query_redis_cfg(args):
+    cfg = requests.get(args.api_entry + "/hls_vod/api/task_queue").json()["redis"]
+    r = urlparse(cfg["uri"])
+    if r.hostname == "127.0.0.1" or r.hostname == "localhost":
+        hostname = urlparse(args.api_entry).hostname
+        cfg["uri"] = r._replace(netloc=(hostname if r.port is None else "{}:{}".format(hostname, r.port))).geturl()
+    return cfg
 
 
 def worker_entry(args, redis_cfg, now, worker_idx):
@@ -29,7 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("--logo", help="set the path of logo file", type=str)
     args = parser.parse_args()
 
-    redis_cfg = requests.get(args.api_entry + "/hls_vod/api/task_queue").json()["redis"]
+    redis_cfg = query_redis_cfg(args)
     now = time.time()
     processes = [Process(target=worker_entry, args=(args, redis_cfg, now, i)) for i in range(args.workers)]
     for p in processes:
