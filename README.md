@@ -292,9 +292,7 @@ $ sudo -H pip3 install redis m3u8 requests ffmpeg-python
 
 ```bash
 $ python3 transcoder.py --help
-usage: transcoder.py [-h] [--work_dir WORK_DIR] [--workers WORKERS]
-                     [--redis_uri REDIS_URI] [--api_entry API_ENTRY]
-                     [--logo LOGO]
+usage: transcoder.py [-h] [--work_dir WORK_DIR] [--workers WORKERS] [--api_entry API_ENTRY] [--logo LOGO]
 
 Start the transcoder service.
 
@@ -302,12 +300,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --work_dir WORK_DIR   set the work directory (default: /tmp)
   --workers WORKERS     set the number of worker processes (default: CPUs x2)
-  --redis_uri REDIS_URI
-                        set the URI of redis server (default:
-                        redis://127.0.0.1:6379/0)
   --api_entry API_ENTRY
-                        set the entry of platform APIs (default:
-                        http://127.0.0.1:2980)
+                        set the entry of platform APIs (default: http://127.0.0.1:2980)
   --logo LOGO           set the path of logo file
 ```
 
@@ -317,6 +311,5 @@ optional arguments:
 ---- | ----
 --work_dir | 设置工作目录 *默认值: /tmp*
 --workers | 设置工作进程数量 *默认值: CPU数x2*
---redis_uri | 设置Redis连接URI *默认值: redis://127.0.0.1:6379/0*
 --api_entry | 设置API入口URI *默认值: http://127.0.0.1:2980*
 --logo | 设置LOGO文件路径
