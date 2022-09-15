@@ -285,7 +285,7 @@ error | string | 错误信息
 
 安装依赖项：
 ```bash
-$ sudo -H pip3 install redis m3u8 requests ffmpeg-python
+$ pip3 install -r requirements.txt
 ```
 
 ### 运行
