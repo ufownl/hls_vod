@@ -26,7 +26,7 @@ function config()
     -- Redis options
     redis = {
       uri = "redis://127.0.0.1:6379/0",
-      tq = "transcoder_tasks"
+      tq = "transcoder_tasks@hls_vod"
     },
     -- HLS vod callbacks
     callbacks = {
