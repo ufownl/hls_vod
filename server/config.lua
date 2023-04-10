@@ -31,13 +31,13 @@ function config()
     -- HLS vod callbacks
     callbacks = {
       raw_meta = {
-        "http://127.0.0.1:2980/hls_vod/api/callback/raw_meta"
+        "http://127.0.0.1:2981/hls_vod/api/callback/raw_meta"
       },
       cover = {
-        "http://127.0.0.1:2980/hls_vod/api/callback/cover"
+        "http://127.0.0.1:2981/hls_vod/api/callback/cover"
       },
       transcode = {
-        "http://127.0.0.1:2980/hls_vod/api/callback/transcode"
+        "http://127.0.0.1:2981/hls_vod/api/callback/transcode"
       }
     }
   }

@@ -2,7 +2,7 @@
 # Query the meta-data of a specific video
 
 curl -v -G --data-urlencode "id=$1" \
-     "http://localhost:2980/hls_vod/api/video_meta"
+     "http://localhost:2981/hls_vod/api/video_meta"
 
 # Parameters:
 # id: Video ID

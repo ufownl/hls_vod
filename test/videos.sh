@@ -5,7 +5,7 @@ curl -v -G --data-urlencode "start=$1" \
      --data-urlencode "finish=$2" \
      --data-urlencode "skip=$3" \
      --data-urlencode "limit=$4" \
-     "http://localhost:2980/hls_vod/api/videos"
+     "http://localhost:2981/hls_vod/api/videos"
 
 # Parameters:
 # start/finish: Upload Time Range (Unix Timestamp, Optional)

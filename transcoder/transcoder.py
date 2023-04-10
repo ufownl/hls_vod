@@ -52,7 +52,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Start the transcoder service.")
     parser.add_argument("--work_dir", help="set the work directory (default: /tmp)", type=str, default="/tmp")
     parser.add_argument("--workers", help="set the number of worker processes (default: CPUs x2)", type=int, default=cpu_count()*2)
-    parser.add_argument("--api_entry", help="set the entry of platform APIs (default: http://127.0.0.1:2980)", type=str, default="http://127.0.0.1:2980")
+    parser.add_argument("--api_entry", help="set the entry of platform APIs (default: http://127.0.0.1:2981)", type=str, default="http://127.0.0.1:2981")
     parser.add_argument("--logo", help="set the path of logo file", type=str)
     args = parser.parse_args()
 

@@ -54,7 +54,7 @@ $ openresty -p . -c hls_vod.conf
 
 #### Upload Raw Video
 
-* URL: `http://<Server Hostname>:2980/hls_vod/api/upload/raw`
+* URL: `http://<Server Hostname>:2981/hls_vod/api/upload/raw`
 * Request Method: `POST`
 * Request Content-Type: `multipart/form-data`
 * HTTP Status: 200 means success
@@ -73,7 +73,7 @@ $ openresty -p . -c hls_vod.conf
 
 #### Download Raw Video
 
-* URL: `http://<Server Hostname>:2980/hls_vod/api/download/raw`
+* URL: `http://<Server Hostname>:2981/hls_vod/api/download/raw`
 * Request Method: `GET`
 * URL Parameters: 
 
@@ -87,7 +87,7 @@ id | string | Video ID
 
 #### Extract Video Cover
 
-* URL: `http://<Server Hostname>:2980/hls_vod/api/extract_cover`
+* URL: `http://<Server Hostname>:2981/hls_vod/api/extract_cover`
 * Request Method: `POST`
 * Request Content-Type: `application/x-www-form-urlencoded`
 * Request Parameters: 
@@ -109,7 +109,7 @@ ss | double | Timeline Position of the Cover (second) *Optional Default: 0*
 
 #### Video Transcode
 
-* URL: `http://<Server Hostname>:2980/hls_vod/api/transcode`
+* URL: `http://<Server Hostname>:2981/hls_vod/api/transcode`
 * Request Method: `POST`
 * Request Content-Type: `application/x-www-form-urlencoded`
 * Request Parameters: 
@@ -134,7 +134,7 @@ logo_w/logo_h | int | Width/Height of the LOGO Watermark (-1 means scaling in th
 
 #### Query Videos
 
-* URL: `http://<Server Hostname>:2980/hls_vod/api/videos`
+* URL: `http://<Server Hostname>:2981/hls_vod/api/videos`
 * Request Method: `GET`
 * URL Parameters: 
 
@@ -169,7 +169,7 @@ skip/limit | int | Parameters of Pagination *Optional*
 
 #### Query Video Meta-Data
 
-* URL: `http://<Server Hostname>:2980/hls_vod/api/video_meta`
+* URL: `http://<Server Hostname>:2981/hls_vod/api/video_meta`
 * Request Method: `GET`
 * URL Parameters: 
 
@@ -197,7 +197,7 @@ id | string | Video ID
 
 #### Remove Video
 
-* URL: `http://<Server Hostname>:2980/hls_vod/api/remove_video`
+* URL: `http://<Server Hostname>:2981/hls_vod/api/remove_video`
 * Request Method: `POST`
 * Request Content-Type: `application/x-www-form-urlencoded`
 * Request Parameters: 
@@ -318,6 +318,6 @@ optional arguments:
   --work_dir WORK_DIR   set the work directory (default: /tmp)
   --workers WORKERS     set the number of worker processes (default: CPUs x2)
   --api_entry API_ENTRY
-                        set the entry of platform APIs (default: http://127.0.0.1:2980)
+                        set the entry of platform APIs (default: http://127.0.0.1:2981)
   --logo LOGO           set the path of logo file
 ```

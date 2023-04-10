@@ -3,7 +3,7 @@
 
 curl -v --data-urlencode "id=$1" \
      --data-urlencode "ss=$2" \
-     "http://localhost:2980/hls_vod/api/extract_cover"
+     "http://localhost:2981/hls_vod/api/extract_cover"
 
 # Parameters:
 # id: Video ID

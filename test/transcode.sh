@@ -9,7 +9,7 @@ curl -v --data-urlencode "id=$1" \
      --data-urlencode "logo_y=$6" \
      --data-urlencode "logo_w=$7" \
      --data-urlencode "logo_h=$8" \
-     "http://localhost:2980/hls_vod/api/transcode"
+     "http://localhost:2981/hls_vod/api/transcode"
 
 # Parameters:
 # id: Video ID

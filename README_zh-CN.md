@@ -54,7 +54,7 @@ $ openresty -p . -c hls_vod.conf
 
 #### 上传视频源文件
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/upload/raw`
+* URL：`http://<服务器地址>:2981/hls_vod/api/upload/raw`
 * 请求方式：`POST`
 * 请求类型：`multipart/form-data`
 * 返回值：调用成功返回HTTP状态码200
@@ -73,7 +73,7 @@ $ openresty -p . -c hls_vod.conf
 
 #### 下载视频源文件
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/download/raw`
+* URL：`http://<服务器地址>:2981/hls_vod/api/download/raw`
 * 请求方式：`GET`
 * URL参数：
 
@@ -87,7 +87,7 @@ id | string | 视频ID
 
 #### 提取视频封面
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/extract_cover`
+* URL：`http://<服务器地址>:2981/hls_vod/api/extract_cover`
 * 请求方式：`POST`
 * 请求类型：`application/x-www-form-urlencoded`
 * 请求参数：
@@ -109,7 +109,7 @@ ss | double | 封面截取时间(秒) *可选参数 默认值：0*
 
 #### 视频转码
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/transcode`
+* URL：`http://<服务器地址>:2981/hls_vod/api/transcode`
 * 请求方式：`POST`
 * 请求类型：`application/x-www-form-urlencoded`
 * 请求参数：
@@ -134,7 +134,7 @@ logo_w/logo_h | int | LOGO水印宽度/高度(-1表示按比例缩放) *可选�
 
 #### 查询视频列表
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/videos`
+* URL：`http://<服务器地址>:2981/hls_vod/api/videos`
 * 请求方式：`GET`
 * URL参数：
 
@@ -169,7 +169,7 @@ skip/limit | int | 分页参数 *可选参数*
 
 #### 查询指定视频元数据
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/video_meta`
+* URL：`http://<服务器地址>:2981/hls_vod/api/video_meta`
 * 请求方式：`GET`
 * URL参数：
 
@@ -197,7 +197,7 @@ id | string | 视频ID
 
 #### 删除指定视频
 
-* URL：`http://<服务器地址>:2980/hls_vod/api/remove_video`
+* URL：`http://<服务器地址>:2981/hls_vod/api/remove_video`
 * 请求方式：`POST`
 * 请求类型：`application/x-www-form-urlencoded`
 * 请求参数：
@@ -318,7 +318,7 @@ optional arguments:
   --work_dir WORK_DIR   set the work directory (default: /tmp)
   --workers WORKERS     set the number of worker processes (default: CPUs x2)
   --api_entry API_ENTRY
-                        set the entry of platform APIs (default: http://127.0.0.1:2980)
+                        set the entry of platform APIs (default: http://127.0.0.1:2981)
   --logo LOGO           set the path of logo file
 ```
 
@@ -328,5 +328,5 @@ optional arguments:
 ---- | ----
 --work_dir | 设置工作目录 *默认值: /tmp*
 --workers | 设置工作进程数量 *默认值: CPU数x2*
---api_entry | 设置API入口URI *默认值: http://127.0.0.1:2980*
+--api_entry | 设置API入口URI *默认值: http://127.0.0.1:2981*
 --logo | 设置LOGO文件路径
