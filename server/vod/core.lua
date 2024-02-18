@@ -259,7 +259,7 @@ function _M.set_raw_meta(id, raw_meta)
   local meta = json.decode(raw_meta)
   if not meta or not meta.format or not tonumber(meta.duration) or
      not tonumber(meta.bit_rate) or not tonumber(meta.width) or
-     not tonumber(meta.height) then
+     not tonumber(meta.height) or not tonumber(meta.rotation) then
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
   local db = database()
@@ -275,7 +275,8 @@ function _M.set_raw_meta(id, raw_meta)
         duration = tonumber(meta.duration),
         bit_rate = tonumber(meta.bit_rate),
         width = tonumber(meta.width),
-        height = tonumber(meta.height)
+        height = tonumber(meta.height),
+        rotation = tonumber(meta.rotation)
       }
     }
   })
@@ -659,6 +660,7 @@ function _M.get_video_meta(id)
     meta.duration = video_qry.raw_meta.duration
     meta.raw_width = video_qry.raw_meta.width
     meta.raw_height = video_qry.raw_meta.height
+    meta.raw_rotation = video_qry.raw_meta.rotation
   end
   local segment_qry = db:collection("segments"):find({
     video = id,
@@ -767,6 +769,7 @@ function _M.get_videos(start, finish, skip, limit)
       meta.duration = v.raw_meta.duration
       meta.raw_width = v.raw_meta.width
       meta.raw_height = v.raw_meta.height
+      meta.raw_rotation = v.raw_meta.rotation
     end
     local segment_qry = db:collection("segments"):find({
       video = id,

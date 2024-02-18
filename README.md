@@ -156,6 +156,7 @@ skip/limit | int | Parameters of Pagination *Optional*
       "duration": <Video Duration (second)>,
       "raw_width": <Width of Raw Video>,
       "raw_height": <Height of Raw Video>,
+      "raw_rotation": <Rotation Angle of Raw Video (degree)>,
       "profiles": [
         "<Profile Name>",
         ...
@@ -188,6 +189,7 @@ id | string | Video ID
   "duration": <Video Duration (second)>,
   "raw_width": <Width of Raw Video>,
   "raw_height": <Height of Raw Video>,
+  "raw_rotation": <Rotation Angle of Raw Video (degree)>,
   "profiles": [
     "<Profile Name>",
     ...
@@ -230,6 +232,7 @@ duration | double | Video Duration (second)
 bit_rate | int | Bitrate of Raw Video
 width | int | Width of Raw Video
 height | int | Height of Raw Video
+rotation | int | Rotation Angle of Raw Video (degree)
 
 *Parsing Failed*
 

@@ -30,17 +30,24 @@ class FFmpegCore(CoreBase):
             fmt = info["format"]
             width = 0
             height = 0
+            rotation = 0
             for stream in info["streams"]:
                 if stream["codec_type"] == "video":
                     width = stream["width"]
                     height = stream["height"]
+                    if "side_data_list" in stream:
+                        for side_data in stream["side_data_list"]:
+                            if "rotation" in side_data:
+                                rotation = side_data["rotation"]
+                                break
                     break
             return {
                 "format": fmt["format_name"],
                 "duration": fmt["duration"],
                 "bit_rate": fmt["bit_rate"],
                 "width": width,
-                "height": height
+                "height": height,
+                "rotation": rotation
             }, None
         except ffmpeg.Error as e:
             print("ffmpeg error: ", e)

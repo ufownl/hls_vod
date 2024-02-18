@@ -19,6 +19,7 @@ curl -v -G --data-urlencode "start=$1" \
 #       "duration": Video Duratoin (second),
 #       "raw_width": Width of Raw Video,
 #       "raw_height": Height of Raw Video,
+#       "raw_rotation": Rotation Angle of Raw Video (degree),
 #       "profiles": [
 #         "Profile Name",
 #         ...

@@ -156,6 +156,7 @@ skip/limit | int | 分页参数 *可选参数*
       "duration": <视频时长(秒)>,
       "raw_width": <原始视频宽度>,
       "raw_height": <原始视频高度>,
+      "raw_rotation": <原始视频旋转角度(度)>,
       "profiles": [
         "<转码规格名称>",
         ...
@@ -188,6 +189,7 @@ id | string | 视频ID
   "duration": <视频时长(秒)>,
   "raw_width": <原始视频宽度>,
   "raw_height": <原始视频高度>,
+  "raw_rotation": <原始视频旋转角度(度)>,
   "profiles": [
     "<转码规格名称>",
     ...
@@ -230,6 +232,7 @@ duration | double | 视频时长(秒)
 bit_rate | int | 源视频码率
 width | int | 源视频宽度
 height | int | 源视频高度
+rotation | int | 源视频旋转角度(度)
 
 *解析失败*
 
