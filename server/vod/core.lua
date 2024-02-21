@@ -53,12 +53,17 @@ local function redisc()
       ngx.log(ngx.ERR, "redis error: ", err)
       ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
     end
-    local redisc, err = connector:connect()
-    if not redisc then
+    while true do
+      local redisc, err = connector:connect()
+      if redisc then
+        ngx.ctx.redisc = redisc
+        break
+      end
       ngx.log(ngx.ERR, "redis error: ", err)
-      ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+      if err ~= "timeout" then
+        ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+      end
     end
-    ngx.ctx.redisc = redisc
   end
   return ngx.ctx.redisc
 end
