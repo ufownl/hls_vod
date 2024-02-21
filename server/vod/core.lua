@@ -46,7 +46,8 @@ end
 local function redisc()
   if not ngx.ctx.redisc then
     local connector, err = redis.new({
-      url = config().redis.uri
+      url = config().redis.uri,
+      connect_timeout = 5000
     })
     if not connector then
       ngx.log(ngx.ERR, "redis error: ", err)
